@@ -1,0 +1,884 @@
+#+title: Emacs From Scratch Configuration
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
+The following variables are used to tweak some of the configuration pieces for use in the live streams so you might need to adjust them for your local machine if you try to use this configuration directly.
+
+#+begin_src emacs-lisp
+
+  ;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
+  ;;       in Emacs and init.el will be generated automatically!
+
+  ;; You will most likely need to adjust this font size for your system!
+  (defvar efs/default-font-size 180)
+  (defvar efs/default-variable-font-size 180)
+
+  ;; Make frame transparency overridable
+  (defvar efs/frame-transparency '(90 . 90))
+
+#+end_src
+* Startup Performance
+
+#+begin_src emacs-lisp
+
+  ;; The default is 800 kilobytes.  Measured in bytes.
+  (setq gc-cons-threshold (* 50 1000 1000))
+
+  (defun efs/display-startup-time ()
+    (message "Emacs loaded in %s with %d garbage collections."
+             (format "%.2f seconds"
+                     (float-time
+                       (time-subtract after-init-time before-init-time)))
+             gcs-done))
+
+  (add-hook 'emacs-startup-hook #'efs/display-startup-time)
+
+#+end_src
+
+* Straight.el bootstrap
+#+begin_src emacs-lisp
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+#+END_SRC
+
+** Use-package install
+#+begin_src emacs-lisp
+  (straight-use-package 'use-package)
+  (setq straight-use-package-by-default t)
+#+end_src
+
+* Basic UI Configuration
+
+This section configures basic UI settings that remove unneeded elements to make Emacs look a lot more minimal and modern.  If you're just getting started in Emacs, the menu bar might be helpful so you can remove the =(menu-bar-mode -1)= line if you'd like to still see that.
+
+#+begin_src emacs-lisp
+  ;; from scimax config
+  (global-visual-line-mode 1) ;; how long lines are handled.  This
+  ;; appears to wrap long lines visually,
+  ;; but not add line-returns
+  
+  (global-font-lock-mode t)   ;; turn on font-lock mode everywhere
+  
+  ;; I do not like autofill mode.
+  (auto-fill-mode -1)
+  
+  (show-paren-mode 1)         ;; highlight parentheses
+  (setq show-paren-style 'mixed) ;; alternative is 'expression,
+  ;; 'parenthesis or 'mixed
+  
+  (setq backup-inhibited t)  ;; disable backup file creation
+  
+  (fset 'yes-or-no-p 'y-or-n-p) ; answer with y/n instead of yes/no
+  ;;
+  
+  ;; from efs
+  (setq inhibit-startup-message t)
+  
+  (scroll-bar-mode -1)        ; Disable visible scrollbar
+  (tool-bar-mode -1)          ; Disable the toolbar
+  (tooltip-mode -1)           ; Disable tooltips
+  (set-fringe-mode 10)        ; Give some breathing room
+  
+  (menu-bar-mode -1)            ; Disable the menu bar
+  
+  ;; Set up the visible bell
+  (setq visible-bell t)
+  
+  
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
+  
+  ;; Set frame transparency
+  (set-frame-parameter (selected-frame) 'alpha efs/frame-transparency)
+  (add-to-list 'default-frame-alist `(alpha . ,efs/frame-transparency))
+  (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+  
+  ;; Disable line numbers for some modes
+  (dolist (mode '(org-mode-hook
+		  term-mode-hook
+		  shell-mode-hook
+		  treemacs-mode-hook
+		  eshell-mode-hook
+		  pdf-view-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+  
+  ;; turn off suspend-frame key
+  (global-unset-key (kbd "C-z"))
+  (global-set-key (kbd "<f6>") 'projectile-test-project)
+  (global-set-key (kbd "<f7>") 'recompile)
+  
+#+end_src
+
+** Font Configuration
+
+I am using the [[https://github.com/tonsky/FiraCode][Fira Code]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] fonts for this configuration which will more than likely need to be installed on your machine.  Both can usually be found in the various Linux distro package managers or downloaded from the links above.
+
+#+begin_src emacs-lisp
+
+(set-face-attribute 'default nil :font "Fira Code" :height efs/default-font-size)
+
+;; Set the fixed pitch face
+(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height efs/default-font-size)
+
+;; Set the variable pitch face
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+
+#+end_src
+* Org Mode
+
+[[https://orgmode.org/][Org Mode]] is one of the hallmark features of Emacs.  It is a rich document editor, project planner, task and time tracker, blogging engine, and literate coding utility all wrapped up in one package.
+
+
+** Auto-tangle Configuration Files
+
+This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-config= gets executed each time such a buffer gets saved.  This function checks to see if the file being saved is the Emacs.org file you're looking at right now, and if so, automatically exports the configuration here to the associated output files.
+
+#+begin_src emacs-lisp
+  ;; Automatically tangle our Emacs.org config file when we save it
+  (defun efs/org-babel-tangle-config ()
+    (when (string-equal (file-name-directory (buffer-file-name))
+			(expand-file-name user-emacs-directory))
+      ;; Dynamic scoping to the rescue
+      (let ((org-confirm-babel-evaluate nil))
+	(org-babel-tangle))))
+  
+  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+  (setq custom-file "~/emacs-from-scratch/custom.el")
+  (load custom-file)
+#+end_src
+
+** Meta key
+
+
+Scimax manual points to the following information on hyper and super keys. 
+http://ergoemacs.org/emacs/emacs_hyper_super_keys.html
+
+According to https://stackoverflow.com/questions/7743402/how-can-i-change-meta-key-from-alt-to-cmd-on-mac-in-emacs-24, the following sequence makes cmd the meta key:
+#+BEGIN_SRC emacs-lisp
+(when (eq system-type 'darwin)
+  (setq mac-command-modifier 'meta)
+  (setq mac-option-modifier 'super) ; make opt key do Super
+  (setq mac-control-modifier 'control) ; make Control key do Control
+  (setq ns-function-modifier 'hyper))  ; make Fn key do Hyper
+  
+#+END_SRC
+
+** org-present
+
+R Lister's minimalist presentation package.
+Also included David Wilson's code to improve some aspects.
+#+BEGIN_SRC emacs-lisp
+(use-package org-appear)
+(defun dw/org-present-prepare-slide ()
+  (org-overview)
+  (org-show-entry)
+  (org-show-children))
+
+(defun dw/org-present-hook ()
+  (setq-local face-remapping-alist '((default (:height 1.5) variable-pitch)
+                                     (header-line (:height 4.5) variable-pitch)
+                                     (org-document-title (:height 1.75) org-document-title)
+                                     (org-code (:height 1.55) org-code)
+                                     (org-verbatim (:height 1.55) org-verbatim)
+				     (org-latex-and-related (:height 2) org-latex-and-related)
+                                     (org-block (:height 1.25) org-block)
+                                     (org-block-begin-line (:height 0.7) org-block)))
+  (setq header-line-format " ")
+  (org-appear-mode -1)
+  (org-display-inline-images)
+  (dw/org-present-prepare-slide))
+
+;;  (dw/kill-panel)
+
+(defun dw/org-present-quit-hook ()
+  (setq-local face-remapping-alist '((default variable-pitch default)))
+  (setq header-line-format nil)
+  (org-present-small)
+  (org-remove-inline-images)
+  (org-appear-mode 1)
+  ;; (dw/start-panel)
+  )
+
+(defun dw/org-present-prev ()
+  (interactive)
+  (org-present-prev)
+  (dw/org-present-prepare-slide))
+
+(defun dw/org-present-next ()
+  (interactive)
+  (org-present-next)
+  (dw/org-present-prepare-slide)
+  )
+
+(use-package org-present
+  :config
+  (add-hook 'org-present-mode-hook
+	    'dw/org-present-hook)
+            ;; (lambda ()
+            ;;   (org-present-big)
+            ;;   (org-display-inline-images)
+            ;;   (org-present-hide-cursor)
+            ;;   (org-present-read-only))
+  (add-hook 'org-present-mode-quit-hook
+	    'dw/org-present-quit-hook)
+            ;; (lambda ()
+            ;;   (org-present-small)
+            ;;   (org-remove-inline-images)
+            ;;   (org-present-show-cursor)
+            ;;   (org-present-read-write))
+  )
+
+#+END_SRC
+
+
+** Helpful Help Commands
+
+[[https://github.com/Wilfred/helpful][Helpful]] adds a lot of very helpful (get it?) information to Emacs' =describe-= command buffers.  For example, if you use =describe-function=, you will not only get the documentation about the function, you will also see the source code of the function and where it gets used in other places in the Emacs configuration.  It is very useful for figuring out how things work in Emacs.
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :bind
+    ([remap describe-function] . helpful-callable)
+    ([remap describe-command] . helpful-command)
+    ([remap describe-variable] . helpful-variable)
+    ([remap describe-key] . helpful-key))
+#+END_SRC
+
+** Better Font Faces
+
+The =efs/org-font-setup= function configures various text faces to tweak the sizes of headings and use variable width fonts in most cases so that it looks more like we're editing a document in =org-mode=.  We switch back to fixed width (monospace) fonts for code blocks and tables so that they display correctly.
+
+#+begin_src emacs-lisp
+
+(defun efs/org-font-setup ()
+  ;; try using variable pitch mode
+  (variable-pitch-mode)
+  ;; Replace list hyphen with dot - I think this gets overridden by superstar
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch))
+
+(add-hook 'org-mode-hook 'efs/org-font-setup)
+
+#+end_src
+** org-superstar
+This is a replacement for org-bullets.
+#+BEGIN_SRC emacs-lisp
+  (use-package org-superstar
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+
+#+END_SRC
+** Centre org window
+We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]] to center =org-mode= buffers for a more pleasing writing experience as it centers the contents of the buffer horizontally to seem more like you are editing a document.  This is really a matter of personal preference so you can remove the block below if you don't like the behavior.
+
+#+begin_src emacs-lisp
+
+  (defun efs/org-mode-visual-fill ()
+    (setq visual-fill-column-width 100
+	  visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
+
+  (use-package visual-fill-column
+    :hook (org-mode . efs/org-mode-visual-fill)
+    (LaTeX-mode . efs/org-mode-visual-fill)
+  )
+
+#+end_src
+
+** Magit
+
+[[https://magit.vc/][Magit]] is the best Git interface I've ever used.  Common Git operations are easy to execute quickly using Magit's command panel system.
+
+#+begin_src emacs-lisp
+
+  (use-package magit
+    :commands magit-status
+    :custom
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+  ;; NOTE: Make sure to configure a GitHub token before using this package!
+  ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+  ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+  (use-package forge
+    :after magit)
+
+#+end_src
+
+** Color Theme
+
+[[https://github.com/hlissner/emacs-doom-themes][doom-themes]] is a great set of themes with a lot of variety and support for many different Emacs modes.  Taking a look at the [[https://github.com/hlissner/emacs-doom-themes/tree/screenshots][screenshots]] might help you decide which one you like best.  You can also run =M-x counsel-load-theme= to choose between them easily.
+
+#+begin_src emacs-lisp
+
+  (use-package doom-themes
+    :init (load-theme 'doom-palenight t))
+
+#+end_src
+
+** Better Modeline
+
+[[https://github.com/seagle0128/doom-modeline][doom-modeline]] is a very attractive and rich (yet still minimal) mode line configuration for Emacs.  The default configuration is quite good but you can check out the [[https://github.com/seagle0128/doom-modeline#customize][configuration options]] for more things you can enable or disable.
+
+*NOTE:* The first time you load your configuration on a new machine, you'll need to run `M-x all-the-icons-install-fonts` so that mode line icons display correctly.
+
+#+begin_src emacs-lisp
+
+  (use-package all-the-icons)
+
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1)
+    :custom ((doom-modeline-height 15)))
+
+#+end_src
+
+** org-agenda
+ #+BEGIN_SRC emacs-lisp
+   (global-set-key (kbd "C-c l") 'org-store-link)
+   (global-set-key (kbd "C-c a") 'org-agenda)
+   (global-set-key (kbd "C-c c") 'org-capture)
+   
+   (setq jpb/on-cogentee
+	 (string-equal system-name "cogentee"))
+   
+   (setq jpb/on-carbon
+	 (string-equal system-name "carbon.local"))
+   
+   (setq org-directory (expand-file-name (if jpb/on-cogentee
+					     "~/org"
+					   "~/Documents/org")))
+   (setq jpb/org-agenda-directory (expand-file-name "agenda" org-directory))
+   ;; (setq org-agenda-files (expand-file-name "agenda/" org-directory))
+   (setq org-agenda-files (mapcar #'(lambda (x)
+				      (expand-file-name x jpb/org-agenda-directory))
+				  '("inbox.org"
+				    "meetings.org"
+				    "domus.org"
+				    "habits.org"
+				    "gcal.org"
+				    "notes.org")))
+   
+   (add-to-list 'org-agenda-files (expand-file-name "~/Documents/git/7062cem/todo.org"))
+   
+   (setq org-default-notes-file (expand-file-name "notes.org" jpb/org-agenda-directory))
+ #+END_SRC
+** org pomodoro
+#+BEGIN_SRC emacs-lisp
+(use-package org-pomodoro)
+#+END_SRC
+
+** org habits
+In org agenda, =P= starts a new pomodoro. 
+Also load =org-habit=.
+ #+BEGIN_SRC emacs-lisp
+   (use-package org
+     :bind
+     (:map org-agenda-keymap
+	   ("P" . org-pomodoro))
+     :config
+     (setq org-ellipsis " ▾")
+   
+     (require 'org-habit)
+     (add-to-list 'org-modules 'org-habit)
+     (setq org-habit-graph-column 60)
+   )
+ #+END_SRC
+** org ref
+I've taken this from John Kitchin's Scimax but converted to use straight.el
+
+#+BEGIN_SRC emacs-lisp
+  ;; this is a git submodule
+  (use-package org-ref
+    :straight (org-ref :type git :host github :repo "jkitchin/org-ref")
+    :init
+    (setq bibtex-autokey-year-length 4
+	  bibtex-autokey-name-year-separator "-"
+	  bibtex-autokey-year-title-separator "-"
+	  bibtex-autokey-titleword-separator "-"
+	  bibtex-autokey-titlewords 2
+	  bibtex-autokey-titlewords-stretch 1
+	  bibtex-autokey-titleword-length 5
+	  org-ref-bibtex-hydra-key-binding (kbd "H-b")
+	  reftex-default-bibliography (expand-file-name "~/biblatex-repo/My-Library.bib")
+	  )
+    ;; (define-key bibtex-mode-map org-ref-bibtex-hydra-key-binding 'org-ref-bibtex-hydra/body)
+    ;; (global-set-key (kbd "H-b") 'org-ref-bibtex-hydra/body)
+    )
+  
+  ;; (use-package org-ref-arxiv
+  ;;   :ensure nil
+  ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
+  
+  ;; (use-package org-ref-scopus
+  ;;   :ensure nil
+  ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
+  
+  ;; (use-package org-ref-wos
+  ;;   :ensure nil
+  ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
+  
+  
+#+END_SRC
+
+** org-mode exporters
+*** ox-koma-letter
+  #+BEGIN_SRC emacs-lisp
+;(add-to-list 'load-path "~/emacs-extra")
+(eval-after-load 'ox '(require 'ox-koma-letter))
+  #+END_SRC
+
+*** ox-reveal
+  #+BEGIN_SRC emacs-lisp
+;(eval-after-load 'ox '(require 'ox-reveal))
+;(setq org-reveal-root "file:///Users/james/reveal.js-master")
+  #+END_SRC
+
+*** ox-beamer
+
+ #+BEGIN_SRC emacs-lisp
+(require 'ox-latex)
+(add-to-list 'org-latex-classes
+             '("beamer"
+               "\\documentclass\[presentation\]\{beamer\}"
+               ("\\section\{%s\}" . "\\section*\{%s\}")
+               ("\\subsection\{%s\}" . "\\subsection*\{%s\}")
+               ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")))
+(add-to-list 'org-latex-classes
+             '("scrreprt"
+               "\\documentclass\[10pt,DIV=11\]\{scrreprt\}"
+               ("\\chapter\{%s\}" . "\\chapter*\{%s\}")
+               ("\\section\{%s\}" . "\\section*\{%s\}")
+               ("\\subsection\{%s\}" . "\\subsection*\{%s\}")
+               ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")
+               ("\\paragraph\{%s\}" . "\\paragraph*\{%s\}")
+	       ))
+(add-to-list 'org-latex-classes
+             '("scrartcl"
+               "\\documentclass\[10pt\]\{scrartcl\}"
+               ("\\section\{%s\}" . "\\section*\{%s\}")
+               ("\\subsection\{%s\}" . "\\subsection*\{%s\}")
+               ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")
+               ("\\paragraph\{%s\}" . "\\paragraph*\{%s\}")
+	       ))
+ #+END_SRC
+*** ox-twbs
+
+ Export to twitter bootstrap
+ #+BEGIN_SRC emacs-lisp
+(use-package ox-twbs
+)
+ #+END_SRC
+
+*** ox-latex adjustment for minted
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (setq org-latex-listings 'minted)
+  (setq org-latex-minted-options
+      '(("frame" "lines")
+	("fontsize" "\\scriptsize")
+	("breaklines" "")
+	("breakanywhere" "")
+	("linenos" "")))
+  
+  (setq  org-latex-pdf-process
+	 '("latexmk -f -pdf -%latex -interaction=non-stopmode -output-directory=%o -shell-escape -bibtex %f"))
+  
+#+END_SRC
+
+#+RESULTS:
+| latexmk -shell-escape -bibtex -pdf %f |
+
+** ob-ipython
+#+BEGIN_SRC emacs-lisp
+  (use-package jupyter
+    :demand t
+    :bind (:map org-mode-map
+		("M-i" . ob-ipython-inspect))
+    :config
+    ;; * Babel settings
+    ;; enable prompt-free code running
+    (setq org-confirm-babel-evaluate nil
+	  org-confirm-elisp-link-function nil
+	  org-link-shell-confirm-function nil)
+  
+    ;; register languages in org-mode
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (latex . t)
+       (python . t)
+;;       (ipython . t)
+       (jupyter . t)
+       (shell . t)
+       (matlab . t)
+       (sqlite . t)
+       (ruby . t)
+       (perl . t)
+       (org . t)
+       (dot . t)
+       (plantuml . t)
+       (R . t)
+       (fortran . t)
+       (C . t)))
+    )
+#+END_SRC
+
+** org-roam
+#+BEGIN_SRC emacs-lisp
+  (use-package org-roam
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/Documents/org-roam")
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+	   ("C-c n f" . org-roam-node-find)
+	   ("C-c n i" . org-roam-node-insert)
+	   :map org-mode-map
+	   ("C-M-i" . completion-at-point))
+    :config
+    (org-roam-setup))
+#+END_SRC
+
+
+* Completion System
+
+Trying this as an alternative to Ivy and Counsel.
+
+** Preserve Minibuffer History with savehist-mode
+
+#+begin_src emacs-lisp
+
+  (use-package savehist
+    :config
+    (setq history-length 25)
+    (savehist-mode 1))
+
+    ;; Individual history elements can be configured separately
+    ;;(put 'minibuffer-history 'history-length 25)
+    ;;(put 'evil-ex-history 'history-length 50)
+    ;;(put 'kill-ring 'history-length 25)
+
+#+end_src
+
+** Completions with Vertico
+
+#+begin_src emacs-lisp
+
+  (defun dw/minibuffer-backward-kill (arg)
+    "When minibuffer is completing a file name delete up to parent
+  folder, otherwise delete a word"
+    (interactive "p")
+    (if minibuffer-completing-file-name
+	;; Borrowed from https://github.com/raxod502/selectrum/issues/498#issuecomment-803283608
+	(if (string-match-p "/." (minibuffer-contents))
+	    (zap-up-to-char (- arg) ?/)
+	  (delete-minibuffer-contents))
+	(backward-kill-word arg)))
+
+  (use-package vertico
+    ;; :straight '(vertico :host github
+    ;;                     :repo "minad/vertico"
+    ;;                     :branch "main")
+    :bind (:map vertico-map
+	   ("C-j" . vertico-next)
+	   ("C-k" . vertico-previous)
+	   ("C-f" . vertico-exit)
+	   :map minibuffer-local-map
+	   ("M-h" . dw/minibuffer-backward-kill))
+    :custom
+    (vertico-cycle t)
+    :custom-face
+    (vertico-current ((t (:background "#3a3f5a"))))
+    :init
+    (vertico-mode))
+
+#+end_src
+
+** Completions in Regions with Corfu
+
+#+begin_src emacs-lisp
+
+  (use-package corfu
+    :straight '(corfu :host github
+                      :repo "minad/corfu")
+    :bind (:map corfu-map
+           ("C-j" . corfu-next)
+           ("C-k" . corfu-previous)
+           ("C-f" . corfu-insert))
+    :custom
+    (corfu-cycle t)
+    :config
+    (corfu-global-mode))
+
+#+end_src
+
+** Improved Candidate Filtering with Orderless
+
+#+begin_src emacs-lisp
+
+  (use-package orderless
+    :init
+    (setq completion-styles '(orderless)
+	  completion-category-defaults nil
+	  completion-category-overrides '((file (styles . (partial-completion))))))
+
+#+end_src
+
+
+** Consult Commands
+
+Consult provides a lot of useful completion commands similar to Ivy's Counsel.
+
+#+begin_src emacs-lisp
+
+  (defun dw/get-project-root ()
+    (when (fboundp 'projectile-project-root)
+      (projectile-project-root)))
+
+  (use-package consult
+    :demand t
+    :bind (("C-s" . consult-line)
+	   ("C-M-l" . consult-imenu)
+	   ("C-M-j" . persp-switch-to-buffer*)
+	   :map minibuffer-local-map
+	   ("C-r" . consult-history))
+    :custom
+    (consult-project-root-function #'dw/get-project-root)
+    (completion-in-region-function #'consult-completion-in-region))
+
+#+end_src
+
+** org-roam-bibtex
+
+Requires ~org-ref~ to be loaded.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-roam-bibtex)
+#+END_SRC
+
+
+* guru-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package guru-mode
+  :config
+  (guru-global-mode +1))
+#+END_SRC
+
+* ripgrep
+https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep for grep-find as follows:
+#+BEGIN_SRC emacs-lisp
+  (use-package grep
+    :config
+    (grep-apply-setting
+     'grep-find-command
+     '("rg -n -H --no-heading -e '' \"$(git rev-parse --show-toplevel || pwd)\"" . 27)
+     )
+    )
+#+END_SRC
+* pdf-tools
+
+#+BEGIN_SRC emacs-lisp
+  (use-package pdf-tools
+    :config
+    (custom-set-variables
+     '(pdf-tools-handle-upgrades nil)) ; Use brew upgrade pdf-tools instead.
+    (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
+  
+  (pdf-tools-install)
+  
+#+END_SRC
+** org-noter
+#+BEGIN_SRC emacs-lisp
+  (use-package org-noter)
+#+END_SRC
+
+* yasnippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :config
+    (yas-global-mode 1)
+    )
+#+END_SRC
+
+* Python related
+** pyvenv
+#+BEGIN_SRC emacs-lisp
+  (use-package pyvenv
+    :config
+    (setenv "WORKON_HOME" (expand-file-name "~/miniconda3/envs"))
+  )
+#+END_SRC
+
+** flycheck with pyflakes
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :config
+    (add-hook 'python-mode-hook 'flycheck-mode)
+    )
+#+END_SRC
+
+
+** pydoc
+Use =M-x pydoc= to find python docstring documentation.
+#+BEGIN_SRC emacs-lisp
+  (use-package pydoc)
+  
+#+END_SRC
+** blacken
+Reformat python source with black
+#+BEGIN_SRC emacs-lisp
+  (use-package blacken
+    :config
+    (add-hook 'python-mode-hook 'blacken-mode)
+    )
+#+END_SRC
+** isort
+Sort import lines with isort
+#+BEGIN_SRC emacs-lisp
+  (use-package py-isort
+    :config
+    (add-hook 'before-save-hook 'py-isort-before-save)
+    )
+#+END_SRC
+* projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :init
+    (projectile-mode +1)
+    :bind (:map projectile-mode-map
+		("s-p" . projectile-command-map)
+		("C-c p" . projectile-command-map))
+    :custom
+    (projectile-project-search-path '("~/Documents/git"))
+    )
+  
+#+END_SRC
+
+# * project.el
+# #+BEGIN_SRC emacs-lisp
+# (use-package project
+#   )
+# #+END_SRC
+
+* recentf
+#+BEGIN_SRC emacs-lisp
+  (use-package recentf
+    :config
+    (setq recentf-exclude
+	  '("COMMIT_MSG" "COMMIT_EDITMSG" "github.*txt$"
+	    ".*png$" "\\*message\\*" "auto-save-list\\*"))
+    (setq recentf-max-saved-items 60))
+  
+#+END_SRC
+
+
+* auctex
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package latex
+  ;;   :straight auctex
+  ;;   :custom
+  ;;   (TeX-view-program-selection ((output-dvi "open")
+  ;; 			       (output-pdf "PDF Tools")
+  ;; 			       (output-html "open")))
+  ;;   (setcdr (assoc "LaTeX" TeX-command-list)
+  ;; 	  '("%`%l%(mode) -shell-escape%' %t"
+  ;; 	    TeX-run-TeX nil (latex-mode doctex-mode) :help "Run LaTeX")
+  ;; 	  )
+  ;;   )
+#+END_SRC
+
+* flyspell
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'text-mode-hook 'flyspell-mode)
+  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+#+END_SRC
+
+* ledger mode
+#+BEGIN_SRC emacs-lisp
+  (use-package ledger-mode)
+#+END_SRC
+
+* Google this
+#+BEGIN_SRC emacs-lisp
+(use-package google-this)
+#+END_SRC
+
+* Dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package dired
+  :ensure nil
+  :straight nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-agho"))
+)
+#+END_SRC
+
+
+* Elfeed
+#+BEGIN_SRC emacs-lisp
+(use-package elfeed
+  :config
+  (setq elfeed-feeds
+	'(;;"https://www.reddit.com/r/reinforcementlearning/.rss?format=xml"
+	  "https://www.getrevue.co/profile/seungjaeryanlee?format=rss"
+	  "https://dtransposed.github.io/feed.xml")))
+#+END_SRC
+
+
+* Avy
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+  :config
+  (global-set-key (kbd "M-j") 'avy-goto-char-timer))
+#+END_SRC
+
+* gcal
+#+BEGIN_SRC emacs-lisp
+
+(use-package org-gcal
+  :config
+  (setq org-gcal-client-id "client-id-goes-here"
+	
+	org-gcal-client-secret "client-secret-goes-here"
+	org-gcal-fetch-file-alist '(("james.brusey@gmail.com" .  "~/Documents/org/agenda/gcal.org")))
+  )
+
+#+END_SRC
+
+
+
+
