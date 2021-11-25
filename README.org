@@ -1,0 +1,5 @@
+#+title: Dotfiles for James Brusey
+
+This is my personal configuration and may be of interest to you to see how I configured my machine.
+It was inspired by David Wilson and his Systemcrafters channel.
+
