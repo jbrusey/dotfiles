@@ -655,6 +655,31 @@ Trying this as an alternative to Ivy and Counsel.
 
 #+end_src
 
+** Marginalia
+Marginalia from David Mendler (Minad) enhances vertico completion lists with additional information. 
+#+BEGIN_SRC emacs-lisp
+;; Enable richer annotations using the Marginalia package
+(use-package marginalia
+  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+  :bind (;; ("M-A" . marginalia-cycle)
+         :map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+
+  ;; The :init configuration is always executed (Not lazy!)
+  :init
+
+  ;; Must be in the :init section of use-package such that the mode gets
+  ;; enabled right away. Note that this forces loading the package.
+  (marginalia-mode))
+
+#+END_SRC
+** Embark
+#+BEGIN_SRC emacs-lisp
+(use-package embark
+  :bind  (("C-." . embark-act)
+	  ("M-." . embark-dwim)
+	  ("C-h B" . embark-bindings)))
+#+END_SRC
 
 ** Consult Commands
 
