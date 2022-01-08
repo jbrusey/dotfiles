@@ -521,7 +521,7 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
 
 ** ob-ipython
 #+BEGIN_SRC emacs-lisp
-  (use-package jupyter
+  (use-package ob-ipython
     :demand t
     :bind (:map org-mode-map
 		("M-i" . ob-ipython-inspect))
@@ -538,8 +538,8 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
      '((emacs-lisp . t)
        (latex . t)
        (python . t)
-;;       (ipython . t)
-       (jupyter . t)
+       (ipython . t)
+;;       (jupyter . t)
        (shell . t)
        (matlab . t)
        (sqlite . t)
@@ -739,6 +739,12 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
     :config
     (custom-set-variables
      '(pdf-tools-handle-upgrades nil)) ; Use brew upgrade pdf-tools instead.
+
+    ;; automatically annotate highlights
+    (setq pdf-annot-activate-created-annotations t)
+    ;; use normal isearch
+    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+
     (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
   
   (pdf-tools-install)
