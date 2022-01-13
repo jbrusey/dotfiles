@@ -869,22 +869,33 @@ Sort import lines with isort
 * Dired
 
 #+BEGIN_SRC emacs-lisp
+(use-package all-the-icons-dired)
 (use-package dired
   :ensure nil
   :straight nil
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho"))
-)
+  :custom
+  (dired-listing-switches "-agho")
+  (dired-omit-verbose nil)
+  (dired-hide-details-hide-symlink-targets nil)
+  :config
+  (setq delete-by-moving-to-trash t)
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (interactive)
+              (dired-omit-mode)
+              (dired-hide-details-mode 1)
+              (all-the-icons-dired-mode 1)
+              (hl-line-mode 1))))
 #+END_SRC
-
-
 * Elfeed
 #+BEGIN_SRC emacs-lisp
 (use-package elfeed
   :config
   (setq elfeed-feeds
-	'(;;"https://www.reddit.com/r/reinforcementlearning/.rss?format=xml"
+	'("https://www.reddit.com/r/reinforcementlearning/.rss?format=xml"
+	  "https://www.reddit.com/r/emacs/.rss?format=xml"
 	  "https://www.getrevue.co/profile/seungjaeryanlee?format=rss"
 	  "https://dtransposed.github.io/feed.xml")))
 #+END_SRC
@@ -908,6 +919,12 @@ Sort import lines with isort
 	org-gcal-fetch-file-alist '(("james.brusey@gmail.com" .  "~/Documents/org/agenda/gcal.org")))
   )
 
+#+END_SRC
+
+* ediff
+I prefer to have ediff use the same frame rather than create a new one. 
+#+BEGIN_SRC emacs-lisp
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
 #+END_SRC
 
 
