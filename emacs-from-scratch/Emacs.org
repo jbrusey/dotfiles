@@ -95,7 +95,11 @@ This section configures basic UI settings that remove unneeded elements to make 
   
   (column-number-mode)
   (global-display-line-numbers-mode t)
-  
+
+  ;; auto revert mode
+  (setq global-auto-revert-non-file-buffers t)
+  (global-auto-revert-mode 1)
+
   ;; Set frame transparency
   (set-frame-parameter (selected-frame) 'alpha efs/frame-transparency)
   (add-to-list 'default-frame-alist `(alpha . ,efs/frame-transparency))
@@ -124,13 +128,25 @@ I am using the [[https://github.com/tonsky/FiraCode][Fira Code]] and [[https://f
 
 #+begin_src emacs-lisp
 
-(set-face-attribute 'default nil :font "Fira Code" :height efs/default-font-size)
+(defun efs/set-font-faces ()
+  (message "Setting faces!")
 
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height efs/default-font-size)
+  (set-face-attribute 'default nil :font "Fira Code" :height efs/default-font-size)
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height efs/default-font-size)
+
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular))
+
+
+(if (daemonp)
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (setq doom-modeline-icon t)
+                (with-selected-frame frame
+                  (efs/set-font-faces))))
+    (efs/set-font-faces))
 
 #+end_src
 * Org Mode
@@ -143,6 +159,13 @@ I am using the [[https://github.com/tonsky/FiraCode][Fira Code]] and [[https://f
 This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-config= gets executed each time such a buffer gets saved.  This function checks to see if the file being saved is the Emacs.org file you're looking at right now, and if so, automatically exports the configuration here to the associated output files.
 
 #+begin_src emacs-lisp
+;; dotfiles emacs directory
+;; (defun jpb/in-user-emacs-or-linked-from-user-emacs-p (file-name)
+;;   (or (string-equal file-name
+;; 		    (expand-file-name user-emacs-directory))
+;;       (string-equal (file-name
+;; 		     (expand-file-name "~/dotfiles/emacs-from-scratch")))))
+
   ;; Automatically tangle our Emacs.org config file when we save it
   (defun efs/org-babel-tangle-config ()
     (when (string-equal (file-name-directory (buffer-file-name))
@@ -239,6 +262,18 @@ Also included David Wilson's code to improve some aspects.
 
 #+END_SRC
 
+** org-agenda blocks
+Prot suggests some ideas about customising the org agenda here: https://protesilaos.com/codelog/2021-12-09-emacs-org-block-agenda/
+
+However, I haven't yet been able to find out how to turn on logs by default. Therefore, I am sticking to just changing the agenda span to day and updating the list of options for todo keywords (in org usepackage section).
+#+BEGIN_SRC emacs-lisp
+(setq org-agenda-span 'day)
+ (setq org-agenda-custom-commands
+       '(("d" "Today's agenda and next tasks"
+ 	 ((agenda "")
+	  (todo "NEXT"))
+	)))
+#+END_SRC
 
 ** Helpful Help Commands
 
@@ -358,7 +393,7 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 
   (use-package doom-modeline
     :init (doom-modeline-mode 1)
-    :custom ((doom-modeline-height 15)))
+    :custom ((doom-modeline-height 25)))
 
 #+end_src
 
@@ -400,6 +435,8 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 ** org habits
 In org agenda, =P= starts a new pomodoro. 
 Also load =org-habit=.
+
+The TODO keywords customisation is based on https://lucidmanager.org/productivity/getting-things-done-with-emacs/ although that blog says to customise to your liking. The main point here is to have NEXT, to allow you to say that something is an active task (rather than in the backlog), and CANCELLED to allow removal of tasks that are no longer relevant. 
  #+BEGIN_SRC emacs-lisp
    (use-package org
      :bind
@@ -407,10 +444,14 @@ Also load =org-habit=.
 	   ("P" . org-pomodoro))
      :config
      (setq org-ellipsis " ▾")
-   
+     (setq org-format-latex-options
+	   (plist-put org-format-latex-options :scale 2.0))
      (require 'org-habit)
      (add-to-list 'org-modules 'org-habit)
      (setq org-habit-graph-column 60)
+     (setq org-todo-keywords
+      '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
    )
  #+END_SRC
 ** org ref
@@ -907,6 +948,10 @@ Sort import lines with isort
   :config
   (global-set-key (kbd "M-j") 'avy-goto-char-timer))
 #+END_SRC
+* No littering
+#+BEGIN_SRC emacs-lisp
+(use-package no-littering)
+#+END_SRC
 
 * gcal
 #+BEGIN_SRC emacs-lisp
@@ -927,6 +972,13 @@ I prefer to have ediff use the same frame rather than create a new one.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 #+END_SRC
 
+* inform7
+#+BEGIN_SRC emacs-lisp
+(use-package inform7
+  :custom-face
+  '(inform7-string-face ((t (:inherit font-lock-string-face :foreground "#c3e88d" :weight normal))))
+  )
+#+END_SRC
 
 
 
