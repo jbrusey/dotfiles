@@ -60,66 +60,68 @@ The following variables are used to tweak some of the configuration pieces for u
 This section configures basic UI settings that remove unneeded elements to make Emacs look a lot more minimal and modern.  If you're just getting started in Emacs, the menu bar might be helpful so you can remove the =(menu-bar-mode -1)= line if you'd like to still see that.
 
 #+begin_src emacs-lisp
-  ;; from scimax config
-  (global-visual-line-mode 1) ;; how long lines are handled.  This
-  ;; appears to wrap long lines visually,
-  ;; but not add line-returns
-  
-  (global-font-lock-mode t)   ;; turn on font-lock mode everywhere
-  
-  ;; I do not like autofill mode.
-  (auto-fill-mode -1)
-  
-  (show-paren-mode 1)         ;; highlight parentheses
-  (setq show-paren-style 'mixed) ;; alternative is 'expression,
-  ;; 'parenthesis or 'mixed
-  
-  (setq backup-inhibited t)  ;; disable backup file creation
-  
-  (fset 'yes-or-no-p 'y-or-n-p) ; answer with y/n instead of yes/no
-  ;;
-  
-  ;; from efs
-  (setq inhibit-startup-message t)
-  
-  (scroll-bar-mode -1)        ; Disable visible scrollbar
-  (tool-bar-mode -1)          ; Disable the toolbar
-  (tooltip-mode -1)           ; Disable tooltips
-  (set-fringe-mode 10)        ; Give some breathing room
-  
-  (menu-bar-mode -1)            ; Disable the menu bar
-  
-  ;; Set up the visible bell
-  (setq visible-bell t)
-  
-  
-  (column-number-mode)
-  (global-display-line-numbers-mode t)
+;; from scimax config
+(global-visual-line-mode 1) ;; how long lines are handled.  This
+;; appears to wrap long lines visually,
+;; but not add line-returns
 
-  ;; auto revert mode
-  (setq global-auto-revert-non-file-buffers t)
-  (global-auto-revert-mode 1)
+(global-font-lock-mode t)   ;; turn on font-lock mode everywhere
 
-  ;; Set frame transparency
-  (set-frame-parameter (selected-frame) 'alpha efs/frame-transparency)
-  (add-to-list 'default-frame-alist `(alpha . ,efs/frame-transparency))
-  (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
-  (add-to-list 'default-frame-alist '(fullscreen . maximized))
-  
-  ;; Disable line numbers for some modes
-  (dolist (mode '(org-mode-hook
-		  term-mode-hook
-		  shell-mode-hook
-		  treemacs-mode-hook
-		  eshell-mode-hook
-		  pdf-view-mode-hook))
-    (add-hook mode (lambda () (display-line-numbers-mode 0))))
-  
-  ;; turn off suspend-frame key
-  (global-unset-key (kbd "C-z"))
-  (global-set-key (kbd "<f6>") 'projectile-test-project)
-  (global-set-key (kbd "<f7>") 'recompile)
-  
+;; I do not like autofill mode.
+(auto-fill-mode -1)
+
+(show-paren-mode 1)         ;; highlight parentheses
+(setq show-paren-style 'mixed) ;; alternative is 'expression,
+;; 'parenthesis or 'mixed
+
+(setq backup-inhibited t)  ;; disable backup file creation
+
+(fset 'yes-or-no-p 'y-or-n-p) ; answer with y/n instead of yes/no
+;;
+
+;; from efs
+(setq inhibit-startup-message t)
+
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
+
+(menu-bar-mode -1)            ; Disable the menu bar
+
+;; Set up the visible bell
+(setq visible-bell t)
+
+
+(column-number-mode)
+(global-display-line-numbers-mode t)
+
+;; auto revert mode
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode 1)
+(setq auto-revert-verbose nil)
+
+
+;; Set frame transparency
+(set-frame-parameter (selected-frame) 'alpha efs/frame-transparency)
+(add-to-list 'default-frame-alist `(alpha . ,efs/frame-transparency))
+(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Disable line numbers for some modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook
+                pdf-view-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; turn off suspend-frame key
+(global-unset-key (kbd "C-z"))
+(global-set-key (kbd "<f6>") 'projectile-test-project)
+(global-set-key (kbd "<f7>") 'recompile)
+
 #+end_src
 
 ** Font Configuration
@@ -169,11 +171,11 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
   ;; Automatically tangle our Emacs.org config file when we save it
   (defun efs/org-babel-tangle-config ()
     (when (string-equal (file-name-directory (buffer-file-name))
-			(expand-file-name user-emacs-directory))
+                        (expand-file-name user-emacs-directory))
       ;; Dynamic scoping to the rescue
       (let ((org-confirm-babel-evaluate nil))
-	(org-babel-tangle))))
-  
+        (org-babel-tangle))))
+
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
   (setq custom-file "~/emacs-from-scratch/custom.el")
   (load custom-file)
@@ -182,7 +184,7 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
 ** Meta key
 
 
-Scimax manual points to the following information on hyper and super keys. 
+Scimax manual points to the following information on hyper and super keys.
 http://ergoemacs.org/emacs/emacs_hyper_super_keys.html
 
 According to https://stackoverflow.com/questions/7743402/how-can-i-change-meta-key-from-alt-to-cmd-on-mac-in-emacs-24, the following sequence makes cmd the meta key:
@@ -192,7 +194,7 @@ According to https://stackoverflow.com/questions/7743402/how-can-i-change-meta-k
   (setq mac-option-modifier 'super) ; make opt key do Super
   (setq mac-control-modifier 'control) ; make Control key do Control
   (setq ns-function-modifier 'hyper))  ; make Fn key do Hyper
-  
+
 #+END_SRC
 
 ** org-present
@@ -212,7 +214,7 @@ Also included David Wilson's code to improve some aspects.
                                      (org-document-title (:height 1.75) org-document-title)
                                      (org-code (:height 1.55) org-code)
                                      (org-verbatim (:height 1.55) org-verbatim)
-				     (org-latex-and-related (:height 2) org-latex-and-related)
+                                     (org-latex-and-related (:height 2) org-latex-and-related)
                                      (org-block (:height 1.25) org-block)
                                      (org-block-begin-line (:height 0.7) org-block)))
   (setq header-line-format " ")
@@ -245,14 +247,14 @@ Also included David Wilson's code to improve some aspects.
 (use-package org-present
   :config
   (add-hook 'org-present-mode-hook
-	    'dw/org-present-hook)
+            'dw/org-present-hook)
             ;; (lambda ()
             ;;   (org-present-big)
             ;;   (org-display-inline-images)
             ;;   (org-present-hide-cursor)
             ;;   (org-present-read-only))
   (add-hook 'org-present-mode-quit-hook
-	    'dw/org-present-quit-hook)
+            'dw/org-present-quit-hook)
             ;; (lambda ()
             ;;   (org-present-small)
             ;;   (org-remove-inline-images)
@@ -270,9 +272,9 @@ However, I haven't yet been able to find out how to turn on logs by default. The
 (setq org-agenda-span 'day)
  (setq org-agenda-custom-commands
        '(("d" "Today's agenda and next tasks"
- 	 ((agenda "")
-	  (todo "NEXT"))
-	)))
+         ((agenda "")
+          (todo "NEXT"))
+        )))
 #+END_SRC
 
 ** Helpful Help Commands
@@ -341,7 +343,7 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 
   (defun efs/org-mode-visual-fill ()
     (setq visual-fill-column-width 100
-	  visual-fill-column-center-text t)
+          visual-fill-column-center-text t)
     (visual-fill-column-mode 1))
 
   (use-package visual-fill-column
@@ -376,8 +378,8 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 
 #+begin_src emacs-lisp
 
-  (use-package doom-themes
-    :init (load-theme 'doom-palenight t))
+(use-package doom-themes
+  :init (load-theme 'doom-palenight t))
 
 #+end_src
 
@@ -402,29 +404,29 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
    (global-set-key (kbd "C-c l") 'org-store-link)
    (global-set-key (kbd "C-c a") 'org-agenda)
    (global-set-key (kbd "C-c c") 'org-capture)
-   
+
    (setq jpb/on-cogentee
-	 (string-equal system-name "cogentee"))
-   
+         (string-equal system-name "cogentee"))
+
    (setq jpb/on-carbon
-	 (string-equal system-name "carbon.local"))
-   
+         (string-equal system-name "carbon.local"))
+
    (setq org-directory (expand-file-name (if jpb/on-cogentee
-					     "~/org"
-					   "~/Documents/org")))
+                                             "~/org"
+                                           "~/Documents/org")))
    (setq jpb/org-agenda-directory (expand-file-name "agenda" org-directory))
    ;; (setq org-agenda-files (expand-file-name "agenda/" org-directory))
    (setq org-agenda-files (mapcar #'(lambda (x)
-				      (expand-file-name x jpb/org-agenda-directory))
-				  '("inbox.org"
-				    "meetings.org"
-				    "domus.org"
-				    "habits.org"
-				    "gcal.org"
-				    "notes.org")))
-   
+                                      (expand-file-name x jpb/org-agenda-directory))
+                                  '("inbox.org"
+                                    "meetings.org"
+                                    "domus.org"
+                                    "habits.org"
+                                    "gcal.org"
+                                    "notes.org")))
+
    (add-to-list 'org-agenda-files (expand-file-name "~/Documents/git/7062cem/todo.org"))
-   
+
    (setq org-default-notes-file (expand-file-name "notes.org" jpb/org-agenda-directory))
  #+END_SRC
 ** org pomodoro
@@ -433,19 +435,19 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 #+END_SRC
 
 ** org habits
-In org agenda, =P= starts a new pomodoro. 
+In org agenda, =P= starts a new pomodoro.
 Also load =org-habit=.
 
-The TODO keywords customisation is based on https://lucidmanager.org/productivity/getting-things-done-with-emacs/ although that blog says to customise to your liking. The main point here is to have NEXT, to allow you to say that something is an active task (rather than in the backlog), and CANCELLED to allow removal of tasks that are no longer relevant. 
+The TODO keywords customisation is based on https://lucidmanager.org/productivity/getting-things-done-with-emacs/ although that blog says to customise to your liking. The main point here is to have NEXT, to allow you to say that something is an active task (rather than in the backlog), and CANCELLED to allow removal of tasks that are no longer relevant.
  #+BEGIN_SRC emacs-lisp
    (use-package org
      :bind
      (:map org-agenda-keymap
-	   ("P" . org-pomodoro))
+           ("P" . org-pomodoro))
      :config
      (setq org-ellipsis " ▾")
      (setq org-format-latex-options
-	   (plist-put org-format-latex-options :scale 2.0))
+           (plist-put org-format-latex-options :scale 2.0))
      (require 'org-habit)
      (add-to-list 'org-modules 'org-habit)
      (setq org-habit-graph-column 60)
@@ -463,32 +465,32 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
     :straight (org-ref :type git :host github :repo "jkitchin/org-ref")
     :init
     (setq bibtex-autokey-year-length 4
-	  bibtex-autokey-name-year-separator "-"
-	  bibtex-autokey-year-title-separator "-"
-	  bibtex-autokey-titleword-separator "-"
-	  bibtex-autokey-titlewords 2
-	  bibtex-autokey-titlewords-stretch 1
-	  bibtex-autokey-titleword-length 5
-	  org-ref-bibtex-hydra-key-binding (kbd "H-b")
-	  reftex-default-bibliography (expand-file-name "~/biblatex-repo/My-Library.bib")
-	  )
+          bibtex-autokey-name-year-separator "-"
+          bibtex-autokey-year-title-separator "-"
+          bibtex-autokey-titleword-separator "-"
+          bibtex-autokey-titlewords 2
+          bibtex-autokey-titlewords-stretch 1
+          bibtex-autokey-titleword-length 5
+          org-ref-bibtex-hydra-key-binding (kbd "H-b")
+          reftex-default-bibliography (expand-file-name "~/biblatex-repo/My-Library.bib")
+          )
     ;; (define-key bibtex-mode-map org-ref-bibtex-hydra-key-binding 'org-ref-bibtex-hydra/body)
     ;; (global-set-key (kbd "H-b") 'org-ref-bibtex-hydra/body)
     )
-  
+
   ;; (use-package org-ref-arxiv
   ;;   :ensure nil
   ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
-  
+
   ;; (use-package org-ref-scopus
   ;;   :ensure nil
   ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
-  
+
   ;; (use-package org-ref-wos
   ;;   :ensure nil
   ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
-  
-  
+
+
 #+END_SRC
 
 ** org-mode exporters
@@ -522,7 +524,7 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
                ("\\subsection\{%s\}" . "\\subsection*\{%s\}")
                ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")
                ("\\paragraph\{%s\}" . "\\paragraph*\{%s\}")
-	       ))
+               ))
 (add-to-list 'org-latex-classes
              '("scrartcl"
                "\\documentclass\[10pt\]\{scrartcl\}"
@@ -530,7 +532,7 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
                ("\\subsection\{%s\}" . "\\subsection*\{%s\}")
                ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")
                ("\\paragraph\{%s\}" . "\\paragraph*\{%s\}")
-	       ))
+               ))
  #+END_SRC
 *** ox-twbs
 
@@ -542,37 +544,52 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
 
 *** ox-latex adjustment for minted
 
+I also add booktabs as a default class
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'org-latex-packages-alist '("" "minted"))
   (setq org-latex-listings 'minted)
   (setq org-latex-minted-options
       '(("frame" "lines")
-	("fontsize" "\\scriptsize")
-	("breaklines" "")
-	("breakanywhere" "")
-	("linenos" "")))
-  
+        ("fontsize" "\\scriptsize")
+        ("breaklines" "")
+        ("breakanywhere" "")
+        ("linenos" "")))
+
   (setq  org-latex-pdf-process
-	 '("latexmk -f -pdf -%latex -interaction=non-stopmode -output-directory=%o -shell-escape -bibtex %f"))
-  
+         '("latexmk -f -pdf -%latex -interaction=non-stopmode -output-directory=%o -shell-escape -bibtex %f"))
+
+  (add-to-list 'org-latex-packages-alist '("" "booktabs"))
+
 #+END_SRC
 
-#+RESULTS:
-| latexmk -shell-escape -bibtex -pdf %f |
+
+*** org2blog
+
+#+BEGIN_SRC emacs-lisp
+(use-package org2blog
+  :ensure t
+  :custom
+  (org2blog/wp-blog-alist '(("jbrusey"
+         :url "https://jamesbrusey.coventry.domains/xmlrpc.php"
+         :username "n7oyuq")))
+
+)
+
+#+END_SRC
 
 ** ob-ipython
 #+BEGIN_SRC emacs-lisp
   (use-package ob-ipython
     :demand t
     :bind (:map org-mode-map
-		("M-i" . ob-ipython-inspect))
+                ("M-i" . ob-ipython-inspect))
     :config
     ;; * Babel settings
     ;; enable prompt-free code running
     (setq org-confirm-babel-evaluate nil
-	  org-confirm-elisp-link-function nil
-	  org-link-shell-confirm-function nil)
-  
+          org-confirm-elisp-link-function nil
+          org-link-shell-confirm-function nil)
+
     ;; register languages in org-mode
     (org-babel-do-load-languages
      'org-babel-load-languages
@@ -603,14 +620,32 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
     :custom
     (org-roam-directory "~/Documents/org-roam")
     :bind (("C-c n l" . org-roam-buffer-toggle)
-	   ("C-c n f" . org-roam-node-find)
-	   ("C-c n i" . org-roam-node-insert)
-	   :map org-mode-map
-	   ("C-M-i" . completion-at-point))
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           :map org-mode-map
+           ("C-M-i" . completion-at-point))
     :config
     (org-roam-setup))
 #+END_SRC
 
+** org-journal
+#+BEGIN_SRC emacs-lisp
+(use-package org-journal
+  :ensure t
+  :defer t
+  :init
+  ;; Change default prefix key; needs to be set before loading org-journal
+  (setq org-journal-prefix-key "C-c j")
+  :config
+  (setq org-journal-dir "~/Documents/org/journal/"))
+  ;;        org-journal-date-format "%A, %d %B %Y"))
+#+END_SRC
+* Zotero
+#+BEGIN_SRC emacs-lisp
+(use-package zotxt
+  :ensure t
+)
+#+END_SRC
 
 * Completion System
 
@@ -641,26 +676,26 @@ Trying this as an alternative to Ivy and Counsel.
   folder, otherwise delete a word"
     (interactive "p")
     (if minibuffer-completing-file-name
-	;; Borrowed from https://github.com/raxod502/selectrum/issues/498#issuecomment-803283608
-	(if (string-match-p "/." (minibuffer-contents))
-	    (zap-up-to-char (- arg) ?/)
-	  (delete-minibuffer-contents))
-	(backward-kill-word arg)))
+        ;; Borrowed from https://github.com/raxod502/selectrum/issues/498#issuecomment-803283608
+        (if (string-match-p "/." (minibuffer-contents))
+            (zap-up-to-char (- arg) ?/)
+          (delete-minibuffer-contents))
+        (backward-kill-word arg)))
 
   (use-package vertico
     ;; :straight '(vertico :host github
     ;;                     :repo "minad/vertico"
     ;;                     :branch "main")
     :bind (:map vertico-map
-	   ("C-j" . vertico-next)
-	   ("C-k" . vertico-previous)
-	   ("C-f" . vertico-exit)
-	   :map minibuffer-local-map
-	   ("M-h" . dw/minibuffer-backward-kill))
+           ("C-j" . vertico-next)
+           ("C-k" . vertico-previous)
+           ("C-f" . vertico-exit)
+           :map minibuffer-local-map
+           ("M-h" . dw/minibuffer-backward-kill))
     :custom
     (vertico-cycle t)
     :custom-face
-    (vertico-current ((t (:background "#3a3f5a"))))
+    ;;    (vertico-current ((t (:background "#3a3f5a"))))
     :init
     (vertico-mode))
 
@@ -691,13 +726,13 @@ Trying this as an alternative to Ivy and Counsel.
   (use-package orderless
     :init
     (setq completion-styles '(orderless)
-	  completion-category-defaults nil
-	  completion-category-overrides '((file (styles . (partial-completion))))))
+          completion-category-defaults nil
+          completion-category-overrides '((file (styles . (partial-completion))))))
 
 #+end_src
 
 ** Marginalia
-Marginalia from David Mendler (Minad) enhances vertico completion lists with additional information. 
+Marginalia from David Mendler (Minad) enhances vertico completion lists with additional information.
 #+BEGIN_SRC emacs-lisp
 ;; Enable richer annotations using the Marginalia package
 (use-package marginalia
@@ -718,8 +753,8 @@ Marginalia from David Mendler (Minad) enhances vertico completion lists with add
 #+BEGIN_SRC emacs-lisp
 (use-package embark
   :bind  (("C-." . embark-act)
-	  ("M-." . embark-dwim)
-	  ("C-h B" . embark-bindings)))
+          ("M-." . embark-dwim)
+          ("C-h B" . embark-bindings)))
 #+END_SRC
 
 ** Consult Commands
@@ -735,10 +770,10 @@ Consult provides a lot of useful completion commands similar to Ivy's Counsel.
   (use-package consult
     :demand t
     :bind (("C-s" . consult-line)
-	   ("C-M-l" . consult-imenu)
-	   ("C-M-j" . persp-switch-to-buffer*)
-	   :map minibuffer-local-map
-	   ("C-r" . consult-history))
+           ("C-M-l" . consult-imenu)
+           ("C-M-j" . persp-switch-to-buffer*)
+           :map minibuffer-local-map
+           ("C-r" . consult-history))
     :custom
     (consult-project-root-function #'dw/get-project-root)
     (completion-in-region-function #'consult-completion-in-region))
@@ -787,9 +822,9 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
     (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
 
     (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
-  
+
   (pdf-tools-install)
-  
+
 #+END_SRC
 ** org-noter
 #+BEGIN_SRC emacs-lisp
@@ -826,7 +861,7 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
 Use =M-x pydoc= to find python docstring documentation.
 #+BEGIN_SRC emacs-lisp
   (use-package pydoc)
-  
+
 #+END_SRC
 ** blacken
 Reformat python source with black
@@ -850,12 +885,12 @@ Sort import lines with isort
     :init
     (projectile-mode +1)
     :bind (:map projectile-mode-map
-		("s-p" . projectile-command-map)
-		("C-c p" . projectile-command-map))
+                ("s-p" . projectile-command-map)
+                ("C-c p" . projectile-command-map))
     :custom
     (projectile-project-search-path '("~/Documents/git"))
     )
-  
+
 #+END_SRC
 
 # * project.el
@@ -869,10 +904,10 @@ Sort import lines with isort
   (use-package recentf
     :config
     (setq recentf-exclude
-	  '("COMMIT_MSG" "COMMIT_EDITMSG" "github.*txt$"
-	    ".*png$" "\\*message\\*" "auto-save-list\\*"))
+          '("COMMIT_MSG" "COMMIT_EDITMSG" "github.*txt$"
+            ".*png$" "\\*message\\*" "auto-save-list\\*"))
     (setq recentf-max-saved-items 60))
-  
+
 #+END_SRC
 
 
@@ -921,7 +956,14 @@ Sort import lines with isort
   (dired-omit-verbose nil)
   (dired-hide-details-hide-symlink-targets nil)
   :config
+  ;; see https://www.emacswiki.org/emacs/SystemTrash
   (setq delete-by-moving-to-trash t)
+  (defun system-move-file-to-trash (file)
+    "Use \"trash\" to move FILE to the system trash.
+When using Homebrew, install it using \"brew install trash\"."
+    (call-process (executable-find "trash")
+		  nil 0 nil
+		  file))
   (add-hook 'dired-mode-hook
             (lambda ()
               (interactive)
@@ -935,10 +977,10 @@ Sort import lines with isort
 (use-package elfeed
   :config
   (setq elfeed-feeds
-	'("https://www.reddit.com/r/reinforcementlearning/.rss?format=xml"
-	  "https://www.reddit.com/r/emacs/.rss?format=xml"
-	  "https://www.getrevue.co/profile/seungjaeryanlee?format=rss"
-	  "https://dtransposed.github.io/feed.xml")))
+        '("https://www.reddit.com/r/reinforcementlearning/.rss?format=xml"
+          "https://www.reddit.com/r/emacs/.rss?format=xml"
+          "https://www.getrevue.co/profile/seungjaeryanlee?format=rss"
+          "https://dtransposed.github.io/feed.xml")))
 #+END_SRC
 
 
@@ -953,21 +995,8 @@ Sort import lines with isort
 (use-package no-littering)
 #+END_SRC
 
-* gcal
-#+BEGIN_SRC emacs-lisp
-
-(use-package org-gcal
-  :config
-  (setq org-gcal-client-id "client-id-goes-here"
-	
-	org-gcal-client-secret "client-secret-goes-here"
-	org-gcal-fetch-file-alist '(("james.brusey@gmail.com" .  "~/Documents/org/agenda/gcal.org")))
-  )
-
-#+END_SRC
-
 * ediff
-I prefer to have ediff use the same frame rather than create a new one. 
+I prefer to have ediff use the same frame rather than create a new one.
 #+BEGIN_SRC emacs-lisp
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 #+END_SRC
@@ -979,6 +1008,22 @@ I prefer to have ediff use the same frame rather than create a new one.
   '(inform7-string-face ((t (:inherit font-lock-string-face :foreground "#c3e88d" :weight normal))))
   )
 #+END_SRC
+* poly-markdown and ess
+According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-ess-mode-with-r-markdown I can use polymode to work with an Rmarkdown document. What fun!
+#+BEGIN_SRC emacs-lisp
+;;(use-package ess)
+;;(use-package poly-markdown)
+#+END_SRC
 
 
-
+* beacon
+#+BEGIN_SRC emacs-lisp
+(use-package beacon
+  :config
+  (beacon-mode 1)
+  )
+#+END_SRC
+* selectric mode
+#+BEGIN_SRC emacs-lisp
+(use-package selectric-mode)
+#+END_SRC
