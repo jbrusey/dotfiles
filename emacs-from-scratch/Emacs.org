@@ -373,15 +373,11 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 #+end_src
 
 ** Color Theme
+Having enjoyed doom-themes, such as pale-knight, I've now switched to the modus themes. At the moment, I am using them without any customisation. 
 
-[[https://github.com/hlissner/emacs-doom-themes][doom-themes]] is a great set of themes with a lot of variety and support for many different Emacs modes.  Taking a look at the [[https://github.com/hlissner/emacs-doom-themes/tree/screenshots][screenshots]] might help you decide which one you like best.  You can also run =M-x counsel-load-theme= to choose between them easily.
-
-#+begin_src emacs-lisp
-
-(use-package doom-themes
-  :init (load-theme 'doom-palenight t))
-
-#+end_src
+#+BEGIN_SRC emacs-lisp
+(load-theme 'modus-operandi)
+#+END_SRC
 
 ** Better Modeline
 
@@ -429,6 +425,22 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 
    (setq org-default-notes-file (expand-file-name "notes.org" jpb/org-agenda-directory))
  #+END_SRC
+
+** org capture templates
+The default capture template has lasted well but now it's time to move on.
+The specific things I try to do here are to add in a new task that automatically shows up in my "next" list and have a "today" task that is scheduled for today. 
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "" "Tasks")
+	 "* TODO %?\n  %u\n  %a")
+	("n" "Next" entry (file+headline "" "Tasks")
+	 "* NEXT %?\n  %u\n  %a")
+	("d" "Today" entry (file+headline "" "Tasks")
+	 "* TODO %?\n  SCHEDULED: %t\n  %u\n  %a")))
+#+END_SRC
+
+ 
 ** org pomodoro
 #+BEGIN_SRC emacs-lisp
 (use-package org-pomodoro)
@@ -439,6 +451,8 @@ In org agenda, =P= starts a new pomodoro.
 Also load =org-habit=.
 
 The TODO keywords customisation is based on https://lucidmanager.org/productivity/getting-things-done-with-emacs/ although that blog says to customise to your liking. The main point here is to have NEXT, to allow you to say that something is an active task (rather than in the backlog), and CANCELLED to allow removal of tasks that are no longer relevant.
+
+If you use latex in org files, you'll probably notice that the default font size is very small. I've doubled it here.
  #+BEGIN_SRC emacs-lisp
    (use-package org
      :bind
@@ -566,14 +580,36 @@ I also add booktabs as a default class
 *** org2blog
 
 #+BEGIN_SRC emacs-lisp
+(defun jpb/make-blog-config (blog-site)
+  "Get credentials for a blog given a dotted pair containing the blog and site.
+The blog should be a string containing a single word and the site should be a
+string domain name, such as \"myblog.wordpress.com\"."
+  (let* (
+	 (blog (car blog-site))
+	 (site (cdr blog-site))
+	 (credentials (auth-source-user-and-password site))
+	 (username (nth 0 credentials))
+	 (password (nth 1 credentials))
+	 (url (concat  "https://" site "/xmlrpc.php"))
+	 (config `(,blog
+               :url ,url
+               :username ,username
+               :password ,password)))
+    config
+    ))
+
 (use-package org2blog
   :ensure t
-  :custom
-  (org2blog/wp-blog-alist '(("jbrusey"
-         :url "https://jamesbrusey.coventry.domains/xmlrpc.php"
-         :username "n7oyuq")))
+  :config
+  (let* ((blog-and-site '(("jamesbrusey" . "jamesbrusey.coventry.domains")
+			  ("gap-e" . "gap-e.coventry.domains")))
+	 )
+    (setq org2blog/wp-blog-alist (mapcar 'jpb/make-blog-config blog-and-site))
+    ))
 
-)
+  ;; (org2blog/wp-blog-alist '(("jbrusey"
+  ;; 			     :url "https://jamesbrusey.coventry.domains/xmlrpc.php"
+  ;; 			     :username "
 
 #+END_SRC
 
@@ -1023,7 +1059,9 @@ According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-es
   (beacon-mode 1)
   )
 #+END_SRC
-* selectric mode
+
+* clojure
 #+BEGIN_SRC emacs-lisp
-(use-package selectric-mode)
+(use-package clojure-mode)
+(use-package cider)
 #+END_SRC
