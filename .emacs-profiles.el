@@ -1,3 +1,5 @@
 (("scimax" . ((user-emacs-directory . "~/scimax")))
- ("rational" . ((user-emacs-directory . "~/rational-emacs")))
+ ("crafted" . ((user-emacs-directory . "~/crafted-emacs")
+	       (env . (("CRAFTED_EMACS_HOME" . "~/.config/crafted-emacs"))))
+  )
  ("default" . ((user-emacs-directory . "~/emacs-from-scratch"))))
