@@ -110,6 +110,7 @@ This section configures basic UI settings that remove unneeded elements to make 
 
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
+		org-agenda-mode-hook
                 term-mode-hook
                 shell-mode-hook
                 treemacs-mode-hook
@@ -442,7 +443,16 @@ The specific things I try to do here are to add in a new task that automatically
  
 ** org pomodoro
 #+BEGIN_SRC emacs-lisp
-(use-package org-pomodoro)
+(use-package org-pomodoro
+  :custom
+  (org-pomodoro-finished-sound "/System/Library/Sounds/Blow.aiff")
+  (org-pomodoro-short-break-sound "/System/Library/Sounds/Blow.aiff")
+  (org-pomodoro-long-break-sound "/System/Library/Sounds/Hero.aiff")
+  (org-pomodoro-ticking-sound-p 't)
+  (org-pomodoro-ticking-sound "/System/Library/Sounds/Tink.aiff")
+  (org-pomodoro-ticking-sound-args "-v 0.1")
+  (org-pomodoro-ticking-frequency 60)
+  )
 #+END_SRC
 
 ** org habits
@@ -510,7 +520,9 @@ I've taken this from John Kitchin's Scimax but converted to use straight.el
 *** ox-koma-letter
   #+BEGIN_SRC emacs-lisp
 ;(add-to-list 'load-path "~/emacs-extra")
-(eval-after-load 'ox '(require 'ox-koma-letter))
+(eval-after-load 'ox '(progn
+			(require 'ox-koma-letter)
+			(setq org-koma-letter-use-foldmarks nil)))
   #+END_SRC
 
 *** ox-reveal
@@ -600,6 +612,7 @@ string domain name, such as \"myblog.wordpress.com\"."
 (use-package org2blog
   :ensure t
   :config
+  (setq org2blog/wp-image-upload t)
   (let* ((blog-and-site '(("jamesbrusey" . "jamesbrusey.coventry.domains")
 			  ("gap-e" . "gap-e.coventry.domains")))
 	 )
@@ -665,6 +678,15 @@ string domain name, such as \"myblog.wordpress.com\"."
 
 ** org-journal
 #+BEGIN_SRC emacs-lisp
+
+(defun org-journal-save-entry-and-exit()
+  "Simple convenience function.
+  Saves the buffer of the current day's entry and kills the window
+  Similar to org-capture like behavior"
+  (interactive)
+  (save-buffer)
+  (kill-buffer-and-window))
+
 (use-package org-journal
   :ensure t
   :defer t
@@ -672,8 +694,12 @@ string domain name, such as \"myblog.wordpress.com\"."
   ;; Change default prefix key; needs to be set before loading org-journal
   (setq org-journal-prefix-key "C-c j")
   :config
-  (setq org-journal-dir "~/Documents/org/journal/"))
+  (setq org-journal-dir "~/Documents/org/journal/")
+  (define-key org-journal-mode-map (kbd "C-x C-s") 'org-journal-save-entry-and-exit)
+  )
   ;;        org-journal-date-format "%A, %d %B %Y"))
+
+
 #+END_SRC
 * Zotero
 #+BEGIN_SRC emacs-lisp
@@ -1064,4 +1090,24 @@ According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-es
 #+BEGIN_SRC emacs-lisp
 (use-package clojure-mode)
 (use-package cider)
+#+END_SRC
+
+* nov.el
+#+BEGIN_SRC emacs-lisp
+(use-package nov)
+#+END_SRC
+
+
+* Tramp configuration
+Based on https://stackoverflow.com/questions/3465567/how-to-use-ssh-and-sudo-together-with-tramp-in-emacs it suggests:
+#+BEGIN_SRC emacs-lisp
+(set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+#+END_SRC
+
+Which then allows:
+C-x C-f /sudo:root@host:/path/to/file
+
+* Mastodon.el
+#+BEGIN_SRC emacs-lisp
+(use-package mastodon)
 #+END_SRC
