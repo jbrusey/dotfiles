@@ -15,7 +15,7 @@
 
 ;;; Code:
 (require 'crafted-defaults)
-(require 'crafted-screencast)
+;(require 'crafted-screencast)
 (require 'crafted-ui)
 (require 'crafted-editing)
 (require 'crafted-completion)
