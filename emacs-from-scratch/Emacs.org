@@ -482,10 +482,16 @@ If you use latex in org files, you'll probably notice that the default font size
 ** org ref
 I've taken this from John Kitchin's Scimax but converted to use straight.el
 
+I found when referring to my bibliography in my home directory that it compiles to latex code with a relative pathname.
+Unfortunately, this doesn't work if the latex compilation happens elsewhere than the original directory.
+To fix, I found a stack-overflow answer that suggested changing the bib-resolve-func.
+
 #+BEGIN_SRC emacs-lisp
   ;; this is a git submodule
   (use-package org-ref
     :straight (org-ref :type git :host github :repo "jkitchin/org-ref")
+    :custom
+    (org-ref-latex-bib-resolve-func #'expand-file-name)
     :init
     (setq bibtex-autokey-year-length 4
           bibtex-autokey-name-year-separator "-"
