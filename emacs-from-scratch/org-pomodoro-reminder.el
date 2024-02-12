@@ -10,8 +10,12 @@
   "Timer to remind to start a new pomodoro after a break.")
 
 (defun org-pomodoro-reminder-play-sound ()
-  "Play sound every minute until the next pomodoro starts."
-  (org-pomodoro-maybe-play-sound :overtime))
+  "Play sound every minute until the next pomodoro starts, checking for system idle time."
+  (let ((idle-time (float-time (or (current-idle-time) 0))))
+    ;; if the idle time is > 60 seconds, probably we just woke from sleep
+    (if (> idle-time 60)
+        (org-pomodoro-reminder-stop)
+      (org-pomodoro-maybe-play-sound :overtime))))
 
 (defun org-pomodoro-reminder-start ()
   "Start reminding to start a new pomodoro after break."

@@ -1,4 +1,4 @@
-#+title: Emacs From Scratch Configuration
+﻿#+title: Emacs From Scratch Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
 The following variables are used to tweak some of the configuration pieces for use in the live streams so you might need to adjust them for your local machine if you try to use this configuration directly.
 
@@ -8,8 +8,8 @@ The following variables are used to tweak some of the configuration pieces for u
   ;;       in Emacs and init.el will be generated automatically!
 
   ;; You will most likely need to adjust this font size for your system!
-  (defvar efs/default-font-size 180)
-  (defvar efs/default-variable-font-size 180)
+  (defvar efs/default-font-size 160)
+  (defvar efs/default-variable-font-size 160)
 
   ;; Make frame transparency overridable
   (defvar efs/frame-transparency '(95 . 90))
@@ -122,7 +122,12 @@ This section configures basic UI settings that remove unneeded elements to make 
 (global-unset-key (kbd "C-z"))
 (global-set-key (kbd "<f6>") 'projectile-test-project)
 (global-set-key (kbd "<f7>") 'recompile)
-
+(global-set-key (kbd "s-3") (lambda ()
+			      (interactive)
+			      (insert-char #xa3))) ;; pound
+(global-set-key (kbd "s-2") (lambda ()
+			      (interactive)
+			      (insert-char #x20ac))) ;; euro
 #+end_src
 
 ** Font Configuration
@@ -270,13 +275,29 @@ Prot suggests some ideas about customising the org agenda here: https://protesil
 
 However, I haven't yet been able to find out how to turn on logs by default. Therefore, I am sticking to just changing the agenda span to day and updating the list of options for todo keywords (in org usepackage section).
 #+BEGIN_SRC emacs-lisp
-(setq org-agenda-span 'day)
- (setq org-agenda-custom-commands
+(eval-after-load "org"
+  '(progn
+     (setq 
+      org-agenda-span 'day
+      org-agenda-time-grid '((daily today require-timed)
+			     (900 1000 1100 1200 1300 1400 1500 1600 1700)
+			     " .... " "────────────────")
+      org-agenda-window-setup 'current-window
+      org-agenda-skip-deadline-if-done t
+      org-agenda-skip-scheduled-if-done t
+      org-agenda-skip-timestamp-if-done t
+      org-agenda-todo-ignore-with-date t
+      org-agenda-custom-commands
        '(("d" "Today's agenda and next tasks"
          ((agenda "")
-          (todo "NEXT"))
-        )))
+          (todo "NEXT"))))
+       )))
 #+END_SRC
+
+(setq org-agenda-span 'day)
+(setq org-agenda-time-grid
+      )
+
 
 ** Helpful Help Commands
 
@@ -446,13 +467,17 @@ The specific things I try to do here are to add in a new task that automatically
 (use-package org-pomodoro
   :custom
   (org-pomodoro-finished-sound "/System/Library/Sounds/Blow.aiff")
-  (org-pomodoro-short-break-sound "/System/Library/Sounds/Blow.aiff")
+  (org-pomodoro-short-break-sound "/System/Library/Sounds/Glass.aiff")
   (org-pomodoro-long-break-sound "/System/Library/Sounds/Hero.aiff")
+  (org-pomodoro-overtime-sound "/System/Library/Sounds/Submarine.aiff")
+  (org-pomodoro-manual-break t)
   (org-pomodoro-ticking-sound-p 't)
   (org-pomodoro-ticking-sound "/System/Library/Sounds/Tink.aiff")
   (org-pomodoro-ticking-sound-args "-v 0.1")
   (org-pomodoro-ticking-frequency 60)
   )
+
+(load (expand-file-name "org-pomodoro-reminder" user-emacs-directory))
 #+END_SRC
 
 ** org habits
@@ -474,6 +499,7 @@ If you use latex in org files, you'll probably notice that the default font size
      (require 'org-habit)
      (add-to-list 'org-modules 'org-habit)
      (setq org-habit-graph-column 60)
+     (setq org-habit-completed-glyph ?✔)
      (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
 
@@ -533,8 +559,12 @@ To fix, I found a stack-overflow answer that suggested changing the bib-resolve-
 
 *** ox-reveal
   #+BEGIN_SRC emacs-lisp
-;(eval-after-load 'ox '(require 'ox-reveal))
-;(setq org-reveal-root "file:///Users/james/reveal.js-master")
+;; (use-package org-reveal
+;;   :straight (org-reveal :type git :host github :repo "yjwen/org-reveal")
+;;   )
+
+;; (eval-after-load 'ox '(require 'ox-reveal))
+;; (setq org-reveal-root "file:///Users/james/reveal.js-master")
   #+END_SRC
 
 *** ox-beamer
@@ -617,6 +647,8 @@ string domain name, such as \"myblog.wordpress.com\"."
 
 (use-package org2blog
   :ensure t
+  :defer t
+  :commands (org2blog-user-interface)
   :config
   (setq org2blog/wp-image-upload t)
   (let* ((blog-and-site '(("jamesbrusey" . "jamesbrusey.coventry.domains")
@@ -756,7 +788,7 @@ Trying this as an alternative to Ivy and Counsel.
     :bind (:map vertico-map
            ("C-j" . vertico-next)
            ("C-k" . vertico-previous)
-           ("C-f" . vertico-exit)
+	   ;;           ("C-f" . vertico-exit)
            :map minibuffer-local-map
            ("M-h" . dw/minibuffer-backward-kill))
     :custom
@@ -822,6 +854,7 @@ Marginalia from David Mendler (Minad) enhances vertico completion lists with add
   :bind  (("C-." . embark-act)
           ("M-." . embark-dwim)
           ("C-h B" . embark-bindings)))
+(use-package embark-consult)
 #+END_SRC
 
 ** Consult Commands
@@ -836,7 +869,7 @@ Consult provides a lot of useful completion commands similar to Ivy's Counsel.
 
   (use-package consult
     :demand t
-    :bind (("C-s" . consult-line)
+    :bind (;;("C-s" . consult-line)
            ("C-M-l" . consult-imenu)
            ("C-M-j" . persp-switch-to-buffer*)
            :map minibuffer-local-map
@@ -880,8 +913,8 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
 #+BEGIN_SRC emacs-lisp
   (use-package pdf-tools
     :config
-    (custom-set-variables
-     '(pdf-tools-handle-upgrades nil)) ; Use brew upgrade pdf-tools instead.
+    ;; (custom-set-variables
+    ;;  '(pdf-tools-handle-upgrades nil)) ; Use brew upgrade pdf-tools instead.
 
     ;; automatically annotate highlights
     (setq pdf-annot-activate-created-annotations t)
@@ -994,10 +1027,18 @@ Sort import lines with isort
   ;;   )
 #+END_SRC
 
+* jinx
+#+BEGIN_SRC emacs-lisp
+;; (use-package jinx
+;;   :hook (text-mode prog-mode)
+;;   :bind ([remap ispell-word] . jinx-correct))
+#+END_SRC
+
+
 * flyspell
 #+BEGIN_SRC emacs-lisp
-  (add-hook 'text-mode-hook 'flyspell-mode)
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
 #+END_SRC
 
 * ledger mode
@@ -1073,9 +1114,18 @@ I prefer to have ediff use the same frame rather than create a new one.
 #+BEGIN_SRC emacs-lisp
 (use-package inform7
   :custom-face
-  '(inform7-string-face ((t (:inherit font-lock-string-face :foreground "#c3e88d" :weight normal))))
+  (inform7-string-face ((t (:inherit font-lock-string-face :foreground "DarkOliveGreen3" :weight normal))))
+  )
+
+(use-package inform-mode
+  :bind (:map inform-mode-map
+              (";" . self-insert-command))
+
   )
 #+END_SRC
+
+#+RESULTS:
+
 * poly-markdown and ess
 According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-ess-mode-with-r-markdown I can use polymode to work with an Rmarkdown document. What fun!
 #+BEGIN_SRC emacs-lisp
@@ -1094,15 +1144,46 @@ According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-es
 
 * clojure
 #+BEGIN_SRC emacs-lisp
-(use-package clojure-mode)
-(use-package cider)
+(use-package clojure-mode
+  :defer t)
+(use-package cider
+  :defer t)
 #+END_SRC
 
 * nov.el
 #+BEGIN_SRC emacs-lisp
-(use-package nov)
+(use-package nov
+  :defer t)
 #+END_SRC
 
+* csv mode
+#+BEGIN_SRC emacs-lisp
+(use-package csv-mode
+  :defer t)
+(use-package csv
+  :defer t)
+#+END_SRC
+* gptel
+#+BEGIN_SRC emacs-lisp
+			   
+(use-package gptel
+  :config
+  (gptel-make-openai
+   "textgeneration"
+   :stream t
+   :protocol "http"
+   :host "localhost:5000"
+   :key nil
+   :models '("mixtral"))
+  )
+
+#+END_SRC
+
+* pass
+There is a melpa package to support the `pass' command - which is a great tool for encrypting passwords and storing them in a tree structured database.
+#+BEGIN_SRC emacs-lisp
+(use-package pass)
+#+END_SRC
 
 * Tramp configuration
 Based on https://stackoverflow.com/questions/3465567/how-to-use-ssh-and-sudo-together-with-tramp-in-emacs it suggests:
@@ -1113,7 +1194,24 @@ Based on https://stackoverflow.com/questions/3465567/how-to-use-ssh-and-sudo-tog
 Which then allows:
 C-x C-f /sudo:root@host:/path/to/file
 
-* Mastodon.el
+* Tree sitter langs
 #+BEGIN_SRC emacs-lisp
-(use-package mastodon)
+(use-package tree-sitter-langs
+  :ensure t
+  :after tree-sitter)
+#+END_SRC
+
+* Close all files from a particular directory
+
+#+BEGIN_SRC emacs-lisp
+(defun close-buffers-in-directory (directory)
+  "Close all buffers whose files are inside DIRECTORY."
+  (interactive "DDirectory name: ")
+  (let ((dir (file-name-as-directory (expand-file-name directory))))
+    (dolist (buffer (buffer-list))
+      (let ((file (buffer-file-name buffer)))
+        (when (and file
+                   (string-prefix-p dir (expand-file-name file)))
+          (kill-buffer buffer))))))
+
 #+END_SRC
