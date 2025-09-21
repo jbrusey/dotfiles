@@ -5,9 +5,8 @@ The following variables are used to tweak some of the configuration pieces for u
 #+begin_src emacs-lisp
 
   ;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
-  ;;       in Emacs and init.el will be generated automatically!
+  ;;       in Emacs and init.el will be generated automatically
 
-  ;; You will most likely need to adjust this font size for your system!
   (defvar efs/default-font-size 160)
   (defvar efs/default-variable-font-size 160)
 
@@ -277,7 +276,7 @@ However, I haven't yet been able to find out how to turn on logs by default. The
 #+BEGIN_SRC emacs-lisp
 (eval-after-load "org"
   '(progn
-     (setq 
+     (setq
       org-agenda-span 'day
       org-agenda-time-grid '((daily today require-timed)
 			     (900 1000 1100 1200 1300 1400 1500 1600 1700)
@@ -389,16 +388,16 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
   ;; NOTE: Make sure to configure a GitHub token before using this package!
   ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
   ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-  (use-package forge
-    :after magit)
+  ;; (use-package forge
+  ;;   :after magit)
 
 #+end_src
 
 ** Color Theme
-Having enjoyed doom-themes, such as pale-knight, I've now switched to the modus themes. At the moment, I am using them without any customisation. 
+Having enjoyed doom-themes, such as pale-knight, I've now switched to the modus themes. At the moment, I am using them without any customisation.
 
 #+BEGIN_SRC emacs-lisp
-(load-theme 'modus-operandi)
+(load-theme 'modus-vivendi)
 #+END_SRC
 
 ** Better Modeline
@@ -436,33 +435,32 @@ Having enjoyed doom-themes, such as pale-knight, I've now switched to the modus 
    ;; (setq org-agenda-files (expand-file-name "agenda/" org-directory))
    (setq org-agenda-files (mapcar #'(lambda (x)
                                       (expand-file-name x jpb/org-agenda-directory))
-                                  '("inbox.org"
-                                    "meetings.org"
-                                    "habits.org"
+                                  '("habits.org"
 				    "calendar.org"
                                     "notes.org")))
 
-   (add-to-list 'org-agenda-files (expand-file-name "~/Documents/git/7062cem/todo.org"))
+   ;;(add-to-list 'org-agenda-files (expand-file-name "~/Documents/git/7062cem/todo.org"))
 
    (setq org-default-notes-file (expand-file-name "notes.org" jpb/org-agenda-directory))
  #+END_SRC
 
 ** org capture templates
 The default capture template has lasted well but now it's time to move on.
-The specific things I try to do here are to add in a new task that automatically shows up in my "next" list and have a "today" task that is scheduled for today. 
+The specific things I try to do here are to add in a new task that automatically shows up in my "next" list and have a "today" task that is scheduled for today.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline "" "Tasks")
 	 "* TODO %?\n  %u\n  %a")
-	("n" "Next" entry (file+headline "" "Tasks")
-	 "* NEXT %?\n  %u\n  %a")
 	("d" "Today" entry (file+headline "" "Tasks")
 	 "* TODO %?\n  SCHEDULED: %t\n  %u\n  %a")))
 #+END_SRC
 
- 
+
 ** org pomodoro
+
+I also wrote some code to nag me to start a new pomodoro but I find that it doesn't work. It tends to nag when I really can't deal with it. I will turn this off for the moment.
+
 #+BEGIN_SRC emacs-lisp
 (use-package org-pomodoro
   :custom
@@ -477,14 +475,17 @@ The specific things I try to do here are to add in a new task that automatically
   (org-pomodoro-ticking-frequency 60)
   )
 
-(load (expand-file-name "org-pomodoro-reminder" user-emacs-directory))
+;; (load (expand-file-name "org-pomodoro-reminder" user-emacs-directory))
 #+END_SRC
 
 ** org habits
 In org agenda, =P= starts a new pomodoro.
 Also load =org-habit=.
 
-The TODO keywords customisation is based on https://lucidmanager.org/productivity/getting-things-done-with-emacs/ although that blog says to customise to your liking. The main point here is to have NEXT, to allow you to say that something is an active task (rather than in the backlog), and CANCELLED to allow removal of tasks that are no longer relevant.
+The TODO keywords customisation is based on https://lucidmanager.org/productivity/getting-things-done-with-emacs/ although that blog says to customise to your liking.
+
++The main point here is to have NEXT, to allow you to say that something is an active task (rather than in the backlog), and CANCELLED to allow removal of tasks that are no longer relevant.+
+I took this out as it complicates the interface and I don't tend to use it.
 
 If you use latex in org files, you'll probably notice that the default font size is very small. I've doubled it here.
  #+BEGIN_SRC emacs-lisp
@@ -500,8 +501,8 @@ If you use latex in org files, you'll probably notice that the default font size
      (add-to-list 'org-modules 'org-habit)
      (setq org-habit-graph-column 60)
      (setq org-habit-completed-glyph ?✔)
-     (setq org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+     ;; (setq org-todo-keywords
+     ;;  '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
 
    )
  #+END_SRC
@@ -533,6 +534,14 @@ To fix, I found a stack-overflow answer that suggested changing the bib-resolve-
     ;; (global-set-key (kbd "H-b") 'org-ref-bibtex-hydra/body)
     )
 
+  (use-package citeproc)
+  (use-package citeproc-org
+    :init
+    (citeproc-org-setup)
+    )
+(require 'oc-biblatex)
+  ;;(require 'oc-csl)
+
   ;; (use-package org-ref-arxiv
   ;;   :ensure nil
   ;;   :load-path (lambda () (expand-file-name "org-ref" scimax-dir)))
@@ -559,6 +568,7 @@ To fix, I found a stack-overflow answer that suggested changing the bib-resolve-
 
 *** ox-reveal
   #+BEGIN_SRC emacs-lisp
+(use-package ox-reveal)
 ;; (use-package org-reveal
 ;;   :straight (org-reveal :type git :host github :repo "yjwen/org-reveal")
 ;;   )
@@ -920,6 +930,8 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
     (setq pdf-annot-activate-created-annotations t)
     ;; use normal isearch
     (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+    ;; dark mode by default
+    (add-hook 'pdf-view-mode-hook 'pdf-view-midnight-minor-mode)
 
     (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
 
@@ -943,8 +955,8 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
 ** pyvenv
 #+BEGIN_SRC emacs-lisp
   (use-package pyvenv
-    :config
-    (setenv "WORKON_HOME" (expand-file-name "~/miniconda3/envs"))
+    ;; :config
+    ;; (setenv "WORKON_HOME" (expand-file-name "~/miniconda3/envs"))
   )
 #+END_SRC
 
@@ -1043,7 +1055,14 @@ Sort import lines with isort
 
 * ledger mode
 #+BEGIN_SRC emacs-lisp
-  (use-package ledger-mode)
+  (use-package ledger-mode
+    :config
+    (add-to-list 'ledger-report-format-specifiers
+		 '("report-date" . (lambda () (format-time-string "%Y/%m/%d" (org-read-date nil t)))))
+    (add-to-list 'ledger-reports
+		 '("receivable-balance"
+      "%(binary) -f %(ledger-file) bal Assets:Receivable --end %(report-date)"))
+    )
 #+END_SRC
 
 * Google this
@@ -1126,11 +1145,35 @@ I prefer to have ediff use the same frame rather than create a new one.
 
 #+RESULTS:
 
+* Markdown mode
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :mode ("\\.md\\'" . markdown-mode)
+  :init (setq markdown-command "pandoc"))
+(use-package pandoc-mode)
+
+(use-package citar
+  :custom
+  ;;(citar-bibliography '("~/Documents/zotero-export.bib"))
+  (citar-bibliography '("~/Documents/git/AKTP/reports/akt.bib"))
+  )
+#+END_SRC
+
+
 * poly-markdown and ess
 According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-ess-mode-with-r-markdown I can use polymode to work with an Rmarkdown document. What fun!
 #+BEGIN_SRC emacs-lisp
-;;(use-package ess)
-;;(use-package poly-markdown)
+(use-package ess
+  :init
+  (require 'ess-site)
+  )
+
+(use-package poly-R)
+(use-package polymode
+  :mode ("\\.Rmd\\'" . poly-markdown+r-mode)
+  :init
+  (require 'poly-R)
+  (require 'poly-markdown))
 #+END_SRC
 
 
@@ -1165,24 +1208,62 @@ According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-es
 #+END_SRC
 * gptel
 #+BEGIN_SRC emacs-lisp
-			   
 (use-package gptel
   :config
-  (gptel-make-openai
-   "textgeneration"
-   :stream t
-   :protocol "http"
-   :host "localhost:5000"
-   :key nil
-   :models '("mixtral"))
+  (gptel-make-ollama "llama3.3:latest"
+		     :host "localhost:11434"
+		     :models '("llama3.3:latest")
+		     :stream t)
+  (gptel-make-ollama "deepseek-r1:70b"
+		     :host "localhost:11434"
+		     :models '("deepseek-r1:70b")
+		     :stream t)
+  (gptel-make-ollama "deepseek-r1:32b"
+		     :host "localhost:11434"
+		     :models '("deepseek-r1:32b")
+		     :stream t)
+  (gptel-make-ollama "dolphin-llama3:70b"
+		     :host "localhost:11434"
+		     :models '("dolphin-llama3:70b")
+		     :stream t)
+
+
+
+  (setq-default gptel-model "llama3.1:70b"
+		gptel-backend (gptel-make-ollama "llama3.1:70b"
+		     :host "localhost:11434"
+		     :models '("llama3.1:70b")
+		     :stream t))
+
   )
+
+(use-package gptel-extensions
+  :straight (gptel-extensions :type git :host github :repo "kamushadenes/gptel-extensions.el")
+)
 
 #+END_SRC
 
+* github copilot
+#+BEGIN_SRC emacs-lisp
+(use-package copilot
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :ensure t
+  )
+(add-hook 'prog-mode-hook 'copilot-mode)
+(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+
+#+END_SRC
+
+
 * pass
 There is a melpa package to support the `pass' command - which is a great tool for encrypting passwords and storing them in a tree structured database.
+
+If you have a problem with the setting for =PASSWORD_STORE_DIR=, check =auth-source-pass-filename= to see if it has been sent to something weird.
 #+BEGIN_SRC emacs-lisp
-(use-package pass)
+(use-package pass
+  :custom
+  (auth-source-pass-filename "/Users/james/Documents/git/pass"))
 #+END_SRC
 
 * Tramp configuration
@@ -1193,12 +1274,18 @@ Based on https://stackoverflow.com/questions/3465567/how-to-use-ssh-and-sudo-tog
 
 Which then allows:
 C-x C-f /sudo:root@host:/path/to/file
+#+BEGIN_SRC emacs-lisp
+(set-default 'tramp-default-remote-shell "/bin/bash")
+#+END_SRC
+
 
 * Tree sitter langs
 #+BEGIN_SRC emacs-lisp
 (use-package tree-sitter-langs
   :ensure t
   :after tree-sitter)
+
+
 #+END_SRC
 
 * Close all files from a particular directory
@@ -1215,3 +1302,21 @@ C-x C-f /sudo:root@host:/path/to/file
           (kill-buffer buffer))))))
 
 #+END_SRC
+
+* Ensure all sentences are on their own line
+
+#+BEGIN_SRC emacs-lisp
+(defun ensure-sentence-per-line ()
+  "Ensure each sentence in the current buffer starts on a new line."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "\\([.!?]\\)\\([ \t]+\\)\\([^ \t\n]\\)" nil t)
+      (replace-match "\\1\n\\3"))))
+#+END_SRC
+
+* Make use of ibuffer by default
+#+BEGIN_SRC emacs-lisp
+(keymap-global-set "C-x C-b" 'ibuffer)
+#+END_SRC
+

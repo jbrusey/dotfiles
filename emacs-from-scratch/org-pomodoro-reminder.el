@@ -9,18 +9,27 @@
 (defvar org-pomodoro-reminder-timer nil
   "Timer to remind to start a new pomodoro after a break.")
 
+(defvar org-pomodoro-reminder-count 0
+  "Counter to keep track of how many times the reminder sound has been played.")
+
+(defcustom org-pomodoro-reminder-max-count 10
+  "Maximum number of times to play the reminder sound after a pomodoro break."
+  :type 'integer
+  :group 'org-pomodoro)
+
 (defun org-pomodoro-reminder-play-sound ()
-  "Play sound every minute until the next pomodoro starts, checking for system idle time."
-  (let ((idle-time (float-time (or (current-idle-time) 0))))
-    ;; if the idle time is > 60 seconds, probably we just woke from sleep
-    (if (> idle-time 60)
-        (org-pomodoro-reminder-stop)
-      (org-pomodoro-maybe-play-sound :overtime))))
+  "Play sound every minute until the next pomodoro starts, stopping after reaching maximum count."
+  (if (< org-pomodoro-reminder-count org-pomodoro-reminder-max-count)
+      (progn
+        (org-pomodoro-maybe-play-sound :overtime)
+        (setq org-pomodoro-reminder-count (1+ org-pomodoro-reminder-count)))
+    (org-pomodoro-reminder-stop)))
 
 (defun org-pomodoro-reminder-start ()
   "Start reminding to start a new pomodoro after break."
   (when org-pomodoro-reminder-timer
     (cancel-timer org-pomodoro-reminder-timer))
+  (setq org-pomodoro-reminder-count 0)
   (setq org-pomodoro-reminder-timer (run-at-time t 60 'org-pomodoro-reminder-play-sound)))
 
 (defun org-pomodoro-reminder-stop ()
