@@ -566,9 +566,15 @@ To fix, I found a stack-overflow answer that suggested changing the bib-resolve-
 			(setq org-koma-letter-use-foldmarks nil)))
   #+END_SRC
 
-*** ox-reveal
+*** ox-re-reveal
+According to gpt-5 we should be using org-re-reveal, which supports v4 of revealjs. 
   #+BEGIN_SRC emacs-lisp
-(use-package ox-reveal)
+(use-package org-re-reveal
+:after org
+  :config
+  (setq org-re-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js"
+        org-re-reveal-revealjs-version "4"
+        org-re-reveal-hlevel 2))
 ;; (use-package org-reveal
 ;;   :straight (org-reveal :type git :host github :repo "yjwen/org-reveal")
 ;;   )
@@ -607,10 +613,13 @@ To fix, I found a stack-overflow answer that suggested changing the bib-resolve-
  #+END_SRC
 *** ox-twbs
 
- Export to twitter bootstrap
+ Export to twitter bootstrap.
+
+ I revised ox-twbs to work with org 9.8 pre. 
  #+BEGIN_SRC emacs-lisp
-(use-package ox-twbs
-)
+;;(use-package ox-twbs
+;;  :straight (ox-twbs :type git :host github :repo "jbrusey/ox-twbs"))
+
  #+END_SRC
 
 *** ox-latex adjustment for minted
@@ -952,6 +961,21 @@ https://stegosaurusdormant.com/emacs-ripgrep/ shows how to substitute ripgrep fo
 #+END_SRC
 
 * Python related
+** lsp-mode
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-mode
+  :ensure t
+  :hook ((python-mode . lsp))
+  :commands lsp)
+
+(use-package lsp-pyright
+  :ensure t
+  :after lsp-mode
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp)))) ; or lsp-deferred
+#+END_SRC
+
 ** pyvenv
 #+BEGIN_SRC emacs-lisp
   (use-package pyvenv
