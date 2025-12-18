@@ -1238,6 +1238,10 @@ According to https://stackoverflow.com/questions/16172345/how-can-i-use-emacs-es
 		     :host "localhost:11434"
 		     :models '("llama3.3:latest")
 		     :stream t)
+  (gptel-make-ollama "gemma3:27b"
+		     :host "localhost:11434"
+		     :models '("gemma3:27b")
+		     :stream t)
   (gptel-make-ollama "deepseek-r1:70b"
 		     :host "localhost:11434"
 		     :models '("deepseek-r1:70b")
