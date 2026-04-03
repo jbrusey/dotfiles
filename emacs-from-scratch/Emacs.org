@@ -360,7 +360,6 @@ This is a replacement for org-bullets.
 ** Centre org window
 We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]] to center =org-mode= buffers for a more pleasing writing experience as it centers the contents of the buffer horizontally to seem more like you are editing a document.  This is really a matter of personal preference so you can remove the block below if you don't like the behavior.
 
-#+begin_src emacs-lisp
 
   (defun efs/org-mode-visual-fill ()
     (setq visual-fill-column-width 100
@@ -372,7 +371,6 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
     (LaTeX-mode . efs/org-mode-visual-fill)
   )
 
-#+end_src
 
 ** Magit
 
@@ -617,8 +615,8 @@ According to gpt-5 we should be using org-re-reveal, which supports v4 of reveal
 
  I revised ox-twbs to work with org 9.8 pre. 
  #+BEGIN_SRC emacs-lisp
-;;(use-package ox-twbs
-;;  :straight (ox-twbs :type git :host github :repo "jbrusey/ox-twbs"))
+(use-package ox-twbs
+  :straight (ox-twbs :type git :host github :repo "jbrusey/ox-twbs"))
 
  #+END_SRC
 
@@ -999,22 +997,22 @@ Use =M-x pydoc= to find python docstring documentation.
   (use-package pydoc)
 
 #+END_SRC
-** blacken
+** blacken - remove and use ruff instead
 Reformat python source with black
-#+BEGIN_SRC emacs-lisp
+
   (use-package blacken
     :config
     (add-hook 'python-mode-hook 'blacken-mode)
     )
-#+END_SRC
+
 ** isort
 Sort import lines with isort
-#+BEGIN_SRC emacs-lisp
+
   (use-package py-isort
     :config
     (add-hook 'before-save-hook 'py-isort-before-save)
     )
-#+END_SRC
+
 * projectile
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
